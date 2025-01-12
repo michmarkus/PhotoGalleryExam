@@ -30,3 +30,8 @@ npm-debug.log*
 /platforms
 /plugins
 /www
+
+# Sensitive configuration
+.env
+.env.development
+.env.production
