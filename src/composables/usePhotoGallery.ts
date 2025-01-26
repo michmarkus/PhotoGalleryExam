@@ -33,7 +33,6 @@ export const usePhotoGallery = () => {
     const weather = await fetchWeather(position);
     const fileName = getFormatedDate() + "." + photo.format;
     const savedFileImage = await savePicture(photo, fileName, weather);
-    console.log("Saved file image: ", savedFileImage);
 
     photos.value = [savedFileImage, ...photos.value];
   };
@@ -48,8 +47,6 @@ export const usePhotoGallery = () => {
       data: photo.base64String!,
       directory: Directory.Data,
     });
-
-    console.log("Weather: ", weather);
 
     if (isPlatform("hybrid")) {
       return UserPhoto.fromFilePath(savedFile.uri, undefined, weather);
@@ -98,10 +95,6 @@ export const usePhotoGallery = () => {
 
   const renamePhoto = async (photo: UserPhoto, newFileName: string) => {
     if (photo.fileName !== newFileName) {
-      console.log(
-        "Renaming file from " + photo.fileName + " to " + newFileName,
-      );
-
       const photoStored = photos.value.find(
         (p) => p.filePath === photo.filePath,
       );

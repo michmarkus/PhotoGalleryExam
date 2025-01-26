@@ -1,7 +1,6 @@
 import { ICurrentWeatherData, ILocation, IWeatherData } from "@/services/WeatherApi";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem } from "@capacitor/filesystem";
-import { Position } from "@capacitor/geolocation";
 import { isPlatform } from "@ionic/vue";
 
 export class UserPhoto {

@@ -6,6 +6,7 @@
             <ion-back-button defaultHref="/gallery"></ion-back-button>
           </ion-buttons>
           <ion-title>Detaily obrázku</ion-title>
+          <ion-progress-bar v-if="!photo" type="indeterminate"></ion-progress-bar>
         </ion-toolbar>
       </ion-header>
   
@@ -19,44 +20,41 @@
           </ion-toolbar>
         </ion-header>
 
-      <ion-img :src="photo?.webviewPath" class="ion-margin"/>
-      <ion-card>
-        <ion-card-header>
-          <h1>
-            <ion-input v-model="photoName" :disabled="!editName">
-              <ion-icon v-if="!editName" slot="end" :icon="pencilOutline" @click="editName = true"></ion-icon>
-              <ion-icon v-else slot="end" :icon="saveOutline" @click="saveName"></ion-icon>
-            </ion-input>
-          </h1>
-        </ion-card-header>
-        <ion-card-content>
-          <div v-if="photo">
-            <h1>Poloha pořízení</h1>
-            <strong>Souřadnice: </strong> {{ (photo as UserPhoto).location?.lat + ', ' + (photo as UserPhoto).location?.lon }}<br>
-            <strong>Lokalita: </strong> {{ (photo as UserPhoto).location?.name }}<br>
-            <strong>Region: </strong> {{ (photo as UserPhoto).location?.region }}<br>
-            <strong>Stát: </strong> {{ (photo as UserPhoto).location?.country }}<br>
-            <br>
-            <h1>Počasí při pořízení</h1>
-            <strong>Teplota: </strong> {{ (photo as UserPhoto).weather?.temp_c + " °C" }}<br>
-            <strong>Vlhkost: </strong> {{ (photo as UserPhoto).weather?.humidity + " %" }}<br>
-            <strong>Vítr: </strong> {{ (photo as UserPhoto).weather?.wind_kph + " km/h" }}<br>
-            <strong>Nárazy větru: </strong> {{ (photo as UserPhoto).weather?.gust_kph + " km/h" }}<br>
-            <strong>Viditelnost: </strong> {{ (photo as UserPhoto).weather?.vis_km + " km" }}<br>
-          </div>
-          <div v-else>
-            <p>Načítám data...</p>
-          </div>
-        </ion-card-content>
-      </ion-card>
+        <div v-if="photo">
+          <!--This part is using photo-->
+          <ion-img :src="photo?.webviewPath" class="ion-margin"/>
+          <ion-card>
+            <ion-card-header>
+              <h1>
+                <ion-input v-model="photoName" :disabled="!editName">
+                  <ion-icon v-if="!editName" slot="end" :icon="pencilOutline" @click="editName = true"></ion-icon>
+                  <ion-icon v-else slot="end" :icon="saveOutline" @click="saveName"></ion-icon>
+                </ion-input>
+              </h1>
+            </ion-card-header>
+            <ion-card-content>
+              <h1>Poloha pořízení</h1>
+              <strong>Souřadnice: </strong> {{ (photo as UserPhoto).location?.lat + ', ' + (photo as UserPhoto).location?.lon }}<br>
+              <strong>Lokalita: </strong> {{ (photo as UserPhoto).location?.name }}<br>
+              <strong>Region: </strong> {{ (photo as UserPhoto).location?.region }}<br>
+              <strong>Stát: </strong> {{ (photo as UserPhoto).location?.country }}<br>
+              <br>
+              <h1>Počasí při pořízení</h1>
+              <strong>Teplota: </strong> {{ (photo as UserPhoto).weather?.temp_c + " °C" }}<br>
+              <strong>Vlhkost: </strong> {{ (photo as UserPhoto).weather?.humidity + " %" }}<br>
+              <strong>Vítr: </strong> {{ (photo as UserPhoto).weather?.wind_kph + " km/h" }}<br>
+              <strong>Nárazy větru: </strong> {{ (photo as UserPhoto).weather?.gust_kph + " km/h" }}<br>
+              <strong>Viditelnost: </strong> {{ (photo as UserPhoto).weather?.vis_km + " km" }}<br>
+            </ion-card-content>
+          </ion-card>
+        </div>
 
-      <ion-alert
-        trigger="present-delete-alert"
-        header="Smazat obrázek"
-        message="Opravdu chcte smazat tento obrázek?"
-        :buttons="alertButtons"
-      ></ion-alert>
-  
+        <ion-alert
+          trigger="present-delete-alert"
+          header="Smazat obrázek"
+          message="Opravdu chcte smazat tento obrázek?"
+          :buttons="alertButtons"
+        ></ion-alert>
       </ion-content>
       <ion-footer>
         <ion-toolbar>
@@ -88,6 +86,8 @@
       IonFooter,
       IonAlert,
       IonButton,
+      IonSpinner,
+      IonProgressBar,
     } from '@ionic/vue';
     import { pencilOutline, saveOutline, trashOutline } from 'ionicons/icons';
     import { onMounted, ref } from 'vue';
