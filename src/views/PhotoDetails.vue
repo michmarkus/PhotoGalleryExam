@@ -49,8 +49,24 @@
           </div>
         </ion-card-content>
       </ion-card>
+
+      <ion-alert
+        trigger="present-delete-alert"
+        header="Smazat obrázek"
+        message="Opravdu chcte smazat tento obrázek?"
+        :buttons="alertButtons"
+      ></ion-alert>
   
       </ion-content>
+      <ion-footer>
+        <ion-toolbar>
+          <ion-buttons slot="primary">
+            <ion-button id="present-delete-alert">
+              <ion-icon slot="icon-only" :icon="trashOutline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-footer>
     </ion-page>
   </template>
   
@@ -69,13 +85,16 @@
       IonCardHeader,
       IonCardContent,
       IonInput,
+      IonFooter,
+      IonAlert,
+      IonButton,
     } from '@ionic/vue';
-    import { pencilOutline, saveOutline } from 'ionicons/icons';
+    import { pencilOutline, saveOutline, trashOutline } from 'ionicons/icons';
     import { onMounted, ref } from 'vue';
 
     import { usePhotoGallery } from '@/composables/usePhotoGallery';
     import { UserPhoto } from '@/models/UserPhoto';
-    const { renamePhoto } = usePhotoGallery();
+    const { renamePhoto, deletePhoto } = usePhotoGallery();
 
     const photo = ref<UserPhoto | null>(null);
     const photoFromState: string | null = window.history.state?.photo || null;
@@ -92,13 +111,26 @@
       if (photoFromState) {
         photo.value = UserPhoto.parseString(photoFromState);
         photoName.value = photo.value?.fileName || '';
-        console.log('Photo loaded from history state: ', photo.value);
       } else {
         console.warn('No photo found in history state. Redirecting back to gallery.');
         window.history.back();
       }
     });
 
+    const alertButtons = [
+      {
+        text: 'Ne',
+        role: 'cancel',
+      },
+      {
+        text: 'Ano',
+        handler: () => {
+          deletePhoto(photo.value! as UserPhoto);
+          window.history.back();
+        },
+        role: 'destructive',
+      },
+    ];
   </script>
   
   <style scoped>
