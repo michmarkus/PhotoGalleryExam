@@ -57,27 +57,26 @@
     import { pencilOutline, saveOutline } from 'ionicons/icons';
     import { onMounted, ref } from 'vue';
 
-    import { iUserPhoto, usePhotoGallery } from '@/composables/usePhotoGallery';
+    import { usePhotoGallery } from '@/composables/usePhotoGallery';
+    import { UserPhoto } from '@/models/UserPhoto';
     const { renamePhoto } = usePhotoGallery();
 
-    const photo = ref<iUserPhoto | null>(null);
-    const rawPhoto: string | null = window.history.state?.photo || null;
+    const photo = ref<UserPhoto | null>(null);
+    const photoFromState: string | null = window.history.state?.photo || null;
 
-    const photoName = ref<string>(photo.value?.filepath || '');
+    const photoName = ref<string>(photo.value?.fileName || '');
     const editName = ref<boolean>(false);
 
     const saveName = () => {
-      console.log('Saving photo name');
-      renamePhoto(photo.value!.filepath, photoName.value);
-
+      renamePhoto(photo.value! as UserPhoto, photoName.value);
       editName.value = false;
     };
 
     onMounted(() => {
-      if (rawPhoto) {
-        //console.log('Photo found in history state');
-        photo.value = JSON.parse(rawPhoto);
-        photoName.value = photo.value?.filepath || '';  
+      if (photoFromState) {
+        photo.value = UserPhoto.parse(photoFromState);
+        photoName.value = photo.value?.fileName || '';
+        console.log('Photo loaded from history state: ', photo.value);
       } else {
         console.warn('No photo found in history state. Redirecting back to gallery.');
         window.history.back();

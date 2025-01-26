@@ -15,8 +15,8 @@
   
         <ion-grid>
           <ion-row>
-            <ion-col size="6" :key="photo.filepath" v-for="photo in photos">
-              <ion-img :src="photo.webviewPath" @click="goToPhotoDetail(photo)"></ion-img>
+            <ion-col size="6" :key="photo.filePath" v-for="photo in photos">
+              <ion-img :src="photo.webviewPath" @click="goToPhotoDetail(photo as UserPhoto)"></ion-img>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -31,9 +31,8 @@
   </template>
   
   <script setup lang="ts">
-    import { camera, trash, close } from 'ionicons/icons';
+    import { camera } from 'ionicons/icons';
     import {
-      actionSheetController,
       IonPage,
       IonHeader,
       IonFab,
@@ -49,41 +48,17 @@
     } from '@ionic/vue';
     import { useRouter } from 'vue-router';
 
-    import { usePhotoGallery, iUserPhoto } from '@/composables/usePhotoGallery';
+    import { usePhotoGallery } from '@/composables/usePhotoGallery';
+    import { UserPhoto } from '@/models/UserPhoto';
 
-    const { photos, takePhoto, deletePhoto } = usePhotoGallery();
+    const { photos, takePhoto } = usePhotoGallery();
   
     const router = useRouter();
 
-    const showActionSheet = async (photo: iUserPhoto) => {
-      const actionSheet = await actionSheetController.create({
-        header: 'Photos',
-        buttons: [
-          {
-            text: 'Delete',
-            role: 'destructive',
-            icon: trash,
-            handler: () => {
-              deletePhoto(photo);
-            },
-          },
-          {
-            text: 'Cancel',
-            icon: close,
-            role: 'cancel',
-            handler: () => {
-              // Nothing to do, action sheet is automatically closed
-            },
-          },
-        ],
-      });
-      await actionSheet.present();
-    };
-
-    const goToPhotoDetail = async (photo: iUserPhoto) => {
+    const goToPhotoDetail = (photo: UserPhoto) => {
       router.push({
         name: 'photoDetails',
-        state: { photo: JSON.stringify(photo) },
+        state: { photo: photo.stringify() },
       });
     };
   </script>
