@@ -7,7 +7,9 @@ import {
 } from "@capacitor/camera";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Preferences } from "@capacitor/preferences";
+import { Geolocation, Position } from "@capacitor/geolocation";
 import { UserPhoto, IUserPhoto } from "@/models/UserPhoto";
+import { WeatherApi, ICurrentWeatherData } from "@/services/WeatherApi";
 import { isPlatform } from "@ionic/vue";
 
 const photos = ref<UserPhoto[]>([]);
@@ -15,35 +17,31 @@ const PHOTO_STORAGE = "photos";
 
 export const usePhotoGallery = () => {
   const takePhoto = async () => {
+    // Start looking for the user's location
+    const positionPromise = Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+    });
+
+    // Take a photo
     const photo = await Camera.getPhoto({
       resultType: CameraResultType.Base64,
       source: CameraSource.Camera,
       quality: 100,
     });
 
+    const position = await positionPromise;
+    const weather = await fetchWeather(position);
     const fileName = getFormatedDate() + "." + photo.format;
-    const savedFileImage = await savePicture(photo, fileName);
+    const savedFileImage = await savePicture(photo, fileName, weather);
     console.log("Saved file image: ", savedFileImage);
 
     photos.value = [savedFileImage, ...photos.value];
   };
 
-  const getFormatedDate = () => {
-    const now = new Date();
-
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0"); // Měsíc je 0-indexovaný
-    const day = String(now.getDate()).padStart(2, "0");
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
-    const seconds = String(now.getSeconds()).padStart(2, "0");
-
-    return `${year}${month}${day}_${hours}${minutes}${seconds}`;
-  };
-
   const savePicture = async (
     photo: Photo,
     fileName: string,
+    weather?: ICurrentWeatherData,
   ): Promise<UserPhoto> => {
     const savedFile = await Filesystem.writeFile({
       path: fileName,
@@ -51,10 +49,12 @@ export const usePhotoGallery = () => {
       directory: Directory.Data,
     });
 
+    console.log("Weather: ", weather);
+
     if (isPlatform("hybrid")) {
-      return UserPhoto.fromFilePath(savedFile.uri);
+      return UserPhoto.fromFilePath(savedFile.uri, undefined, weather);
     } else {
-      return UserPhoto.fromFilePath(savedFile.uri, photo.base64String);
+      return UserPhoto.fromFilePath(savedFile.uri, photo.base64String, weather);
     }
   };
 
@@ -62,12 +62,7 @@ export const usePhotoGallery = () => {
     Preferences.set({
       key: PHOTO_STORAGE,
       value: JSON.stringify(
-        photos.value.map((p) => {
-          return {
-            fileName: p.fileName,
-            fileDir: p.fileDir,
-          } as IUserPhoto;
-        }),
+        photos.value.map((p) => p.JSON),
       ),
     });
   };
@@ -80,7 +75,7 @@ export const usePhotoGallery = () => {
 
     // Create UserPhoto objects from the list of photo data and save to photos array
     photos.value = photosInPreferences.map(
-      (p) => new UserPhoto(p.fileName, p.fileDir),
+      (p) => UserPhoto.parse(p) as UserPhoto,
     );
 
     // Load image data for each photo
@@ -126,8 +121,32 @@ export const usePhotoGallery = () => {
     }
   };
 
+  const getFormatedDate = () => {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // Měsíc je 0-indexovaný
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    return `${year}${month}${day}_${hours}${minutes}${seconds}`;
+  };
+
+  const fetchWeather = async (location: Position) : Promise<ICurrentWeatherData> => {
+    const wApi = new WeatherApi();
+    return await wApi.currentWeather(`${location.coords.latitude},${location.coords.longitude}`);
+  };
+
   watch(photos, cachePhotos);
   onMounted(loadSaved);
+  onMounted(() => {
+    // Ask for localication permission on hybrid platforms
+    if (isPlatform("hybrid")){
+      Geolocation.requestPermissions();
+    }
+  });
 
   return {
     photos,

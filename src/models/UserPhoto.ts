@@ -1,5 +1,7 @@
+import { ICurrentWeatherData, ILocation, IWeatherData } from "@/services/WeatherApi";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem } from "@capacitor/filesystem";
+import { Position } from "@capacitor/geolocation";
 import { isPlatform } from "@ionic/vue";
 
 export class UserPhoto {
@@ -7,6 +9,7 @@ export class UserPhoto {
   private _fileExt: string = "";
   fileDir: string;
   private _imageData?: string;
+  private _weather?: ICurrentWeatherData
 
   get fileName(): string {
     return this._fileName + "." + this._fileExt;
@@ -36,17 +39,26 @@ export class UserPhoto {
     }
   }
 
-  constructor(fileName: string, fileDir: string, imageData?: string) {
+  get weather(): IWeatherData | undefined {
+    return this._weather?.current;
+  }
+
+  get location(): ILocation | undefined {
+    return this._weather?.location;
+  }
+
+  constructor(fileName: string, fileDir: string, imageData?: string, weather?: ICurrentWeatherData) {
     this.fileName = fileName;
     this.fileDir = fileDir;
     this._imageData = imageData;
+    this._weather = weather;
   }
 
-  static fromFilePath(filepath: string, imageData?: string): UserPhoto {
+  static fromFilePath(filepath: string, imageData?: string, weather?: ICurrentWeatherData): UserPhoto {
     const pathParts = filepath.split("/");
     const fileName = pathParts.pop() || "";
     const fileDir = pathParts.join("/");
-    return new UserPhoto(fileName, fileDir, imageData);
+    return new UserPhoto(fileName, fileDir, imageData, weather);
   }
 
   async loadImageData(): Promise<void> {
@@ -58,21 +70,27 @@ export class UserPhoto {
     }
   }
 
-  stringify(): string {
-    return JSON.stringify({
+  get JSON(): IUserPhoto {
+    return {
       fileName: this.fileName,
       fileDir: this.fileDir,
       _imageData: this._imageData,
-    });
+      _weather: this._weather,
+    }
   }
 
-  static parse(data: string): UserPhoto {
-    const jsonData = JSON.parse(data) as IUserPhoto;
+  static parse(data: IUserPhoto): UserPhoto {
     return new UserPhoto(
-      jsonData.fileName,
-      jsonData.fileDir,
-      jsonData._imageData,
+      data.fileName,
+      data.fileDir,
+      data._imageData,
+      data._weather,
     );
+  }
+
+  static parseString(data: string): UserPhoto {
+    const jsonData = JSON.parse(data) as IUserPhoto;
+    return this.parse(jsonData);
   }
 }
 
@@ -80,4 +98,5 @@ export interface IUserPhoto {
   fileName: string;
   fileDir: string;
   _imageData?: string;
+  _weather?: ICurrentWeatherData;
 }

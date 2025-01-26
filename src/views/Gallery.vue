@@ -2,14 +2,14 @@
     <ion-page>
       <ion-header :translucent="true">
         <ion-toolbar>
-          <ion-title>Gallery</ion-title>
+          <ion-title>Galerie</ion-title>
         </ion-toolbar>
       </ion-header>
   
       <ion-content :fullscreen="true">
         <ion-header collapse="condense">
           <ion-toolbar>
-            <ion-title size="large">Gallery</ion-title>
+            <ion-title size="large">Galerie</ion-title>
           </ion-toolbar>
         </ion-header>
   
@@ -58,7 +58,7 @@
     const goToPhotoDetail = (photo: UserPhoto) => {
       router.push({
         name: 'photoDetails',
-        state: { photo: photo.stringify() },
+        state: { photo: JSON.stringify(photo.JSON) },
       });
     };
   </script>
